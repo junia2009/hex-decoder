@@ -1,159 +1,477 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HeXデコーダー</title>
-    <style>
-        body {
-            font-family: 'Orbitron', 'Segoe UI', Arial, sans-serif;
-            background: radial-gradient(ellipse at center, #232b38 0%, #0a0f18 100%);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            color: #00ffe7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            box-sizing: border-box;
-        }
-        .container {
-            max-width: 500px;
-            width: 100%;
-            background: rgba(20, 30, 40, 0.95);
-            border-radius: 16px;
-            box-shadow: 0 0 32px 4px #00ffe7a0, 0 2px 16px #000a;
-            padding: 40px 32px 32px 32px;
-            border: 2px solid #00ffe7;
-            position: relative;
-            margin: 0;
-        }
-        h1 {
-            text-align: center;
-            color: #00ffe7;
-            font-size: 2.2em;
-            letter-spacing: 0.12em;
-            text-shadow: 0 0 12px #00ffe7, 0 0 32px #007bff80;
-            margin-bottom: 32px;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid #00ffe7;
-            background: #10151f;
-            color: #00ffe7;
-            font-size: 18px;
-            resize: vertical;
-            margin-bottom: 20px;
-            box-shadow: 0 0 8px #00ffe7a0 inset;
-            outline: none;
-            transition: border 0.2s;
-            box-sizing: border-box;
-            display: block;
-        }
-        textarea:focus {
-            border: 2px solid #007bff;
-            box-shadow: 0 0 16px #007bff80;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(90deg, #00ffe7 0%, #007bff 100%);
-            color: #10151f;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-family: 'Orbitron', 'Segoe UI', Arial, sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 20px;
-            box-shadow: 0 0 16px #00ffe7a0;
-            letter-spacing: 0.08em;
-            transition: background 0.2s, color 0.2s;
-        }
-        button:hover {
-            background: linear-gradient(90deg, #007bff 0%, #00ffe7 100%);
-            color: #00ffe7;
-        }
-        .output {
-            background: #10151f;
-            border: 2px solid #00ffe7;
-            border-radius: 8px;
-            padding: 16px;
-            min-height: 48px;
-            font-size: 18px;
-            word-break: break-all;
-            color: #00ffe7;
-            box-shadow: 0 0 8px #00ffe740 inset;
-            margin-bottom: 0;
-            width: 100%;
-            box-sizing: border-box;
-            display: block;
-        }
-        .error {
-            color: #ff3c3c;
-            background: #1a0a0a;
-            border: 2px solid #ff3c3c;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            box-shadow: 0 0 8px #ff3c3c40 inset;
-        }
-        /* サイバーな装飾 */
-        .container:before {
-            content: '';
-            position: absolute;
-            top: -8px; left: -8px; right: -8px; bottom: -8px;
-            border-radius: 20px;
-            border: 2px solid #007bff40;
-            pointer-events: none;
-            box-shadow: 0 0 32px #00ffe7a0;
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEX DECODER</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
+    :root {
+      --cyan: #00d4ff;
+      --cyan-dim: rgba(0, 212, 255, 0.3);
+      --cyan-glow: rgba(0, 212, 255, 0.15);
+      --orange: #ff6a00;
+      --orange-dim: rgba(255, 106, 0, 0.3);
+      --blue: #1e90ff;
+      --bg-dark: #0a0e17;
+      --panel-bg: rgba(0, 20, 40, 0.6);
+      --text: #c0dce8;
+      --text-bright: #e8f4f8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--bg-dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      color: var(--text); /* ← 追加: 全体のテキスト色を明示 */
+    }
+    /* --- 追加: レイアウト中央寄せ・最大幅・パネル装飾 --- */
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 760px;
+      margin: auto;
+      padding: 20px;
+      z-index: 10;
+    }
+    .hud-frame {
+      position: relative;
+      background: var(--panel-bg);
+      border: 1px solid var(--cyan-dim);
+      border-radius: 4px;
+      padding: 36px 32px 28px;
+      box-shadow:
+        0 0 30px rgba(0, 212, 255, 0.05),
+        0 0 60px var(--cyan-dim),
+        inset 0 0 30px rgba(0, 212, 255, 0.02);
+    }
+    /* --- 角の装飾 --- */
+    .hud-frame::before,
+    .hud-frame::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: var(--cyan);
+      border-style: solid;
+    }
+    .hud-frame::before {
+      top: -1px; left: -1px;
+      border-width: 2px 0 0 2px;
+    }
+    .hud-frame::after {
+      top: -1px; right: -1px;
+      border-width: 2px 2px 0 0;
+    }
+    .corner-bl, .corner-br {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: var(--cyan);
+      border-style: solid;
+    }
+    .corner-bl {
+      bottom: -1px; left: -1px;
+      border-width: 0 0 2px 2px;
+    }
+    .corner-br {
+      bottom: -1px; right: -1px;
+      border-width: 0 2px 2px 0;
+    }
+    /* --- 入力欄・出力欄 --- */
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 14px;
+      border: 1px solid rgba(0, 212, 255, 0.12);
+      border-radius: 2px;
+      background: rgba(0, 10, 20, 0.7);
+      color: var(--text-bright);
+      font-size: 0.9rem;
+      font-family: 'Share Tech Mono', monospace;
+      resize: vertical;
+      transition: all 0.3s;
+      line-height: 1.6;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.1), inset 0 0 15px rgba(0, 212, 255, 0.03);
+    }
+    textarea::placeholder {
+      color: rgba(0, 212, 255, 0.35);
+      letter-spacing: 1px;
+    }
+    /* --- ファイル選択ボタン --- */
+    .file-drop input[type="file"] {
+      display: none;
+    }
+    .file-drop {
+      border: 1px dashed var(--cyan-dim);
+      border-radius: 2px;
+      padding: 14px;
+      text-align: center;
+      color: var(--cyan-dim);
+      font-size: 0.75rem;
+      margin-bottom: 18px;
+      transition: all 0.3s;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+    .file-drop:hover,
+    .file-drop.dragover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    /* --- ボタン --- */
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: 1px solid;
+      border-radius: 2px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      background: transparent;
+      color: var(--cyan);
+      border-color: var(--cyan-dim);
+    }
+    .btn-decode {
+      color: var(--cyan);
+      border-color: var(--cyan-dim);
+    }
+    .btn-encode {
+      color: var(--orange);
+      border-color: var(--orange-dim);
+    }
+    .btn-clear {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .btn:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan-dim), inset 0 0 20px rgba(0, 212, 255, 0.05);
+      text-shadow: 0 0 10px var(--cyan);
+      background: rgba(0, 212, 255, 0.05);
+    }
+    .btn-encode:hover {
+      border-color: var(--orange);
+      box-shadow: 0 0 20px var(--orange-dim), inset 0 0 20px rgba(255, 106, 0, 0.05);
+      text-shadow: 0 0 10px var(--orange);
+      background: rgba(255, 106, 0, 0.05);
+    }
+    .btn-clear:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255,255,255,0.05);
+    }
+    .btn-copy {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 10px;
+      font-size: 0.65rem;
+      font-family: 'Orbitron', sans-serif;
+      background: rgba(0, 212, 255, 0.05);
+      color: var(--cyan-dim);
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .btn-copy:hover {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-dim);
+    }
+    .btn-copy.copied {
+      border-color: #00ff88;
+      color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+    .btn-swap {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--cyan-dim);
+      border-radius: 50%;
+      background: rgba(0, 20, 40, 0.8);
+      color: var(--cyan);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 12px;
+    }
+    .btn-swap:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px var(--cyan-dim);
+      transform: rotate(180deg);
+    }
+    /* --- その他の装飾やレスポンシブは省略 --- */
+    /* ...existing code... */
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>HeX Decoder</h1>
-        <textarea id="hexInput" placeholder="16進数文字列を入力してください (例: 48656c6c6f)"></textarea>
-        <button onclick="decodeHex()">DECODE</button>
-        <div id="error" class="error" style="display:none;"></div>
-        <div class="output" id="output"></div>
+  <!-- Floating particles -->
+  <div class="particles" id="particles"></div>
+  <div class="container">
+    <div class="hud-frame">
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+      <div class="hud-deco-top">
+        <span>SYS.OK</span>
+        <span>Hex Decoder</span>
+        <span>v4.2.1</span>
+      </div>
+      <div class="processing-overlay" id="processingOverlay">
+        <div class="processing-ring"></div>
+      </div>
+      <div class="header">
+        <div class="header-line">
+          <span class="deco"></span>
+          <div class="arc-reactor"></div>
+          <span class="deco"></span>
+        </div>
+        <h1>HEX DECODER</h1>
+        <div class="subtitle">Encryption Decoder Interface</div>
+      </div>
+      <div class="status-bar">
+        <span><span class="status-dot"></span>SYSTEM ONLINE</span>
+        <span class="time" id="clock">00:00:00</span>
+      </div>
+      <div class="file-drop" id="fileDrop">
+        ▸ ファイルをドラッグ＆ドロップ / クリックして選択
+        <input type="file" id="fileInput">
+      </div>
+      <label><span class="bracket">[</span> INPUT STREAM <span class="bracket">]</span></label>
+      <textarea id="input" placeholder="// Hex文字列またはテキストを入力..." spellcheck="false"></textarea>
+      <div class="byte-counter">
+        <span id="inputLen">0 CHARS</span>
+        <span>CTRL+ENTER → DECODE</span>
+      </div>
+      <!-- Swap -->
+      <div class="swap-row" style="justify-content: center; margin: 24px 0;">
+        <button class="btn-swap" onclick="swapFields()" title="入力と出力を入れ替え" style="font-size: 1.5rem; width: 48px; height: 48px;">⇅</button>
+      </div>
+      <!-- Output -->
+      <div style="display: flex; align-items: center; margin-top: 32px; margin-bottom: 4px;">
+        <label style="margin-bottom: 0;"><span class="bracket">[</span> OUTPUT STREAM <span class="bracket">]</span></label>
+        <button class="btn-copy" onclick="copyOutput()" style="margin-left: auto; position: static; top: auto; right: auto;">COPY</button>
+      </div>
+      <div class="output-wrapper">
+        <textarea id="output" readonly placeholder="// 結果がここに表示されます..." spellcheck="false"></textarea>
+      </div>
+      <div class="byte-counter">
+        <span id="outputLen">0 CHARS</span>
+        <span id="processTime"></span>
+      </div>
+      <div class="error" id="error"></div>
+      <div class="btn-group">
+        <button class="btn btn-decode" onclick="decode()">Decode</button>
+        <button class="btn btn-encode" onclick="encode()">Encode</button>
+        <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+      </div>
+      <div class="hud-deco-bottom">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
     </div>
-    <script>
-        function decodeHex() {
-            const inputRaw = document.getElementById('hexInput').value.trim();
-            const output = document.getElementById('output');
-            const errorDiv = document.getElementById('error');
-            errorDiv.style.display = 'none';
-            output.textContent = '';
-            if (!inputRaw) {
-                errorDiv.textContent = '16進数文字列を入力してください。';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            // 半角スペース区切り対応: スペースを除去
-            const input = inputRaw.replace(/\s+/g, '');
-            if (!/^[0-9a-fA-F]+$/.test(input) || input.length % 2 !== 0) {
-                errorDiv.textContent = '有効な16進数文字列を入力してください（偶数桁、または2桁ごとにスペース区切り）。';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            try {
-                let str = '';
-                for (let i = 0; i < input.length; i += 2) {
-                    str += String.fromCharCode(parseInt(input.substr(i, 2), 16));
-                }
-                output.textContent = str;
-            } catch (e) {
-                errorDiv.textContent = 'デコード中にエラーが発生しました。';
-                errorDiv.style.display = 'block';
-            }
-        }
-    </script>
+  </div>
+  <script>
+    const inputEl = document.getElementById('input');
+    const outputEl = document.getElementById('output');
+    const errorEl = document.getElementById('error');
+    const fileDropEl = document.getElementById('fileDrop');
+    const fileInputEl = document.getElementById('fileInput');
+    const clockEl = document.getElementById('clock');
+    const inputLenEl = document.getElementById('inputLen');
+    const outputLenEl = document.getElementById('outputLen');
+    const processTimeEl = document.getElementById('processTime');
+    const overlay = document.getElementById('processingOverlay');
+    function updateClock() {
+      const now = new Date();
+      clockEl.textContent = now.toTimeString().split(' ')[0];
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    inputEl.addEventListener('input', () => {
+      inputLenEl.textContent = inputEl.value.length + ' CHARS';
+    });
+    (function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (4 + Math.random() * 8) + 's';
+        p.style.animationDelay = Math.random() * 10 + 's';
+        p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+        container.appendChild(p);
+      }
+    })();
+    function showProcessing() {
+      return new Promise(resolve => {
+        overlay.classList.add('active');
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          resolve();
+        }, 400);
+      });
+    }
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+    }
+    function hideError() {
+      errorEl.style.display = 'none';
+    }
+    function hexToString(hex) {
+      hex = hex.replace(/\s+/g, '');
+      if (hex.length % 2 !== 0) throw new Error('Hex文字列の長さが偶数ではありません。');
+      let str = '';
+      for (let i = 0; i < hex.length; i += 2) {
+        const code = parseInt(hex.substr(i, 2), 16);
+        if (isNaN(code)) throw new Error('無効なHex文字列です。');
+        str += String.fromCharCode(code);
+      }
+      return str;
+    }
+    function stringToHex(str) {
+      return Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+    }
+    async function decode() {
+      hideError();
+      const text = inputEl.value.trim();
+      if (!text) {
+        showError('入力が空です。Hex文字列を入力してください。');
+        return;
+      }
+      const t0 = performance.now();
+      await showProcessing();
+      try {
+        const decoded = hexToString(text);
+        outputEl.value = decoded;
+        outputLenEl.textContent = decoded.length + ' CHARS';
+        processTimeEl.textContent = 'PROCESSED IN ' + (performance.now() - t0).toFixed(1) + 'ms';
+      } catch (e) {
+        showError('デコードに失敗しました。有効なHex文字列を入力してください。');
+      }
+    }
+    async function encode() {
+      hideError();
+      const text = inputEl.value.trim();
+      if (!text) {
+        showError('入力が空です。エンコードするテキストを入力してください。');
+        return;
+      }
+      const t0 = performance.now();
+      await showProcessing();
+      try {
+        const encoded = stringToHex(text);
+        outputEl.value = encoded;
+        outputLenEl.textContent = encoded.length + ' CHARS';
+        processTimeEl.textContent = 'PROCESSED IN ' + (performance.now() - t0).toFixed(1) + 'ms';
+      } catch (e) {
+        showError('エンコードに失敗しました。');
+      }
+    }
+    function clearAll() {
+      inputEl.value = '';
+      outputEl.value = '';
+      inputLenEl.textContent = '0 CHARS';
+      outputLenEl.textContent = '0 CHARS';
+      processTimeEl.textContent = '';
+      hideError();
+    }
+    function swapFields() {
+      const temp = inputEl.value;
+      inputEl.value = outputEl.value;
+      outputEl.value = temp;
+      inputLenEl.textContent = inputEl.value.length + ' CHARS';
+      outputLenEl.textContent = outputEl.value.length + ' CHARS';
+      hideError();
+    }
+    function copyOutput() {
+      const text = outputEl.value;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.btn-copy');
+        btn.textContent = 'COPIED ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'COPY';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+    fileDropEl.addEventListener('click', () => fileInputEl.click());
+    fileDropEl.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileDropEl.classList.add('dragover');
+    });
+    fileDropEl.addEventListener('dragleave', () => {
+      fileDropEl.classList.remove('dragover');
+    });
+    fileDropEl.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileDropEl.classList.remove('dragover');
+      handleFile(e.dataTransfer.files[0]);
+    });
+    fileInputEl.addEventListener('change', (e) => {
+      if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        inputEl.value = e.target.result;
+        inputLenEl.textContent = e.target.result.length + ' CHARS';
+      };
+      reader.readAsText(file);
+    }
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        e.preventDefault();
+        decode();
+      }
+    });
+    (function typewriterBoot() {
+      const sub = document.querySelector('.subtitle');
+      const text = sub.textContent.trim();
+      sub.textContent = '';
+      let i = 0;
+      const interval = setInterval(() => {
+        sub.textContent += text[i];
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, 40);
+    })();
+  </script>
 </body>
 </html>
