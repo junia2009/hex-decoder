@@ -12,16 +12,22 @@
             padding: 0;
             min-height: 100vh;
             color: #00ffe7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            box-sizing: border-box;
         }
         .container {
             max-width: 500px;
-            margin: 60px auto 0 auto;
+            width: 100%;
             background: rgba(20, 30, 40, 0.95);
             border-radius: 16px;
             box-shadow: 0 0 32px 4px #00ffe7a0, 0 2px 16px #000a;
             padding: 40px 32px 32px 32px;
             border: 2px solid #00ffe7;
             position: relative;
+            margin: 0;
         }
         h1 {
             text-align: center;
@@ -45,6 +51,8 @@
             box-shadow: 0 0 8px #00ffe7a0 inset;
             outline: none;
             transition: border 0.2s;
+            box-sizing: border-box;
+            display: block;
         }
         textarea:focus {
             border: 2px solid #007bff;
@@ -81,6 +89,9 @@
             color: #00ffe7;
             box-shadow: 0 0 8px #00ffe740 inset;
             margin-bottom: 0;
+            width: 100%;
+            box-sizing: border-box;
+            display: block;
         }
         .error {
             color: #ff3c3c;
