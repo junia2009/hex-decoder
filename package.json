@@ -1,0 +1,6 @@
+{
+  "name": "hex-decoder",
+  "description": "シンプルなHeXデコーダーWebアプリ（JARVIS風UI）",
+  "homepage": "https://junia2009.github.io/hex-decoder/",
+  "private": false
+}
